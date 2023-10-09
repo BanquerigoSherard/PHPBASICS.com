@@ -28,22 +28,17 @@ if (isset($_SESSION['user_id'])) {
 if (isset($_POST['login'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];
-
     $password = md5($password);
-
     $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
-
     $select = mysqli_query($con, $sql);
 
     if (mysqli_num_rows($select) != 0) {
         $user = mysqli_fetch_array($select);
-        // echo "Lolgin successfully";
         $_SESSION['user_id'] = $user['id'];
         header("Location: admin/dashboard.php");
     } else {
         echo "Failed to login";
     }
-
 }
 
 
@@ -69,7 +64,7 @@ if (isset($_POST['login'])) {
         <input type="email" name="email" required autofocus>
         <input type="password" name="password" required autofocus>
 
-        <button type="sumbit" name="login">login</button>
+        <button type="submit" name="login">login</button>
     </form>
 
 
