@@ -133,6 +133,10 @@ if (isset($_GET['log'])) {
 
     $(document).ready(function () {
 
+        // $('.editBtn').on('click', function()){
+
+        // }
+
         $(document).on('click', '.saveUser', function (e) {
             e.preventDefault();
 
