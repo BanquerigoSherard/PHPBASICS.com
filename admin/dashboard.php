@@ -27,7 +27,11 @@ if (isset($_GET['log'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Latest compiled JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -40,7 +44,7 @@ if (isset($_GET['log'])) {
         <table class="table mt-3">
             <thead>
                 <tr>
-                    <th scope="col">ID</th>
+                    <th scope="col">#</th>
                     <th scope="col">Email</th>
                     <th scope="col">Created at</th>
                     <th scope="col">Actions</th>
@@ -54,14 +58,17 @@ if (isset($_GET['log'])) {
 
 
                 if (mysqli_num_rows($select) != 0) {
+                    $counter = 0;
+
 
                     while ($row = mysqli_fetch_array($select)) {
+                        $counter++;
 
                         ?>
 
                         <tr>
                             <th scope="row">
-                                <?php echo $row['id']; ?>
+                                <?php echo $counter; ?>
                             </th>
                             <td>
                                 <?php echo $row['email']; ?>
@@ -71,9 +78,9 @@ if (isset($_GET['log'])) {
                             </td>
 
                             <td>
+                                <button value="<?php echo $row['id']; ?>" class="btn btn-primary editBtn">Edit</button>
                                 <button type="button" value="<?php echo $row['id']; ?>"
-                                    class="btn btn-primary editBtn">Edit</button>
-                                <button type="button" class="btn btn-danger">Delete</button>
+                                    class="btn btn-danger deleteBtn">Delete</button>
                             </td>
 
                         </tr>
@@ -126,7 +133,61 @@ if (isset($_GET['log'])) {
 
     $(document).ready(function () {
 
-        $(".editBtn").on("click", function () {
+        $(document).on('click', '.saveUser', function (e) {
+            e.preventDefault();
+
+            var userID = $('#userID').val();
+            var email = $('#userEmail').val();
+
+            $.ajax({
+                async: true,
+                type: "GET",
+                url: "process/updateUser.php?userID=" + userID + "&userEmail=" + email,
+                dataType: "json",
+                success: function (response) {
+
+                    $('#editModal').modal('hide');
+
+                    Swal.fire(
+                        'Updated!',
+                        'User has been updated.',
+                        'success'
+                    );
+
+                    var counter = 0;
+
+                    $('#listUsers').html('');
+
+                    for (let i = 0; i < response.length; i++) {
+                        counter++;
+
+                        var id, email, created_at;
+
+                        id = response[i][0];
+                        email = response[i][1];
+                        created_at = response[i][3];
+                        $('#listUsers').append('<tr>\
+                                <th scope="row">'+ counter + '</th >\
+                                <td>'+ email + '</td>\
+                                <td>'+ created_at + '</td>\
+                            <td>\
+                                <button type="button" value="'+ id + '" class="btn btn-primary editBtn">Edit</button>\
+                                <button type="button" value="'+ id + '" class="btn btn-danger deleteBtn">Delete</button>\
+                                </td >\
+                            </tr>');
+
+                    }
+
+
+                }
+
+            });
+
+
+        });
+
+        $(document).on('click', '.editBtn', function (e) {
+            e.preventDefault();
             var userID = $(this).val();
 
             $.ajax({
@@ -134,6 +195,8 @@ if (isset($_GET['log'])) {
                 type: "GET",
                 url: "process/editModal.php?userID=" + userID,
                 dataType: "json",
+                contentType: false,
+                processData: false,
                 success: function (response) {
 
                     var email = response[1];
@@ -152,60 +215,65 @@ if (isset($_GET['log'])) {
         });
 
 
-        $(".saveUser").on("click", function () {
-
-            var userID = $('#userID').val();
-            var email = $('#userEmail').val();
-
-            $.ajax({
-                async: true,
-                type: "GET",
-                url: "process/updateUser.php?userID=" + userID + "&userEmail=" + email,
-                dataType: "json",
-                success: function (response) {
-
-                    $('#editModal').modal('hide');
-
-                    alert("User updated successfully");
-
-                    $('#listUsers').html('');
-
-                    for (let i = 0; i < response.length; i++) {
+        $(document).on('click', '.deleteBtn', function (e) {
+            e.preventDefault();
+            var userID = $(this).val();
 
 
-                        var id, email, created_at;
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
 
-                        id = response[i][0];
-                        email = response[i][1];
-                        created_at = response[i][3];
-                        $('#listUsers').append('<tr>\
-                                <th scope="row">'+id+'</th >\
-                                <td>'+email+'</td>\
-                                <td>'+created_at+'</td>\
+                    $.ajax({
+                        async: true,
+                        type: "GET",
+                        url: "process/deleteModal.php?userID=" + userID,
+                        dataType: "json",
+                        success: function (response) {
+
+                            Swal.fire(
+                                'Deleted!',
+                                'User has been deleted.',
+                                'success'
+                            );
+
+                            $('#listUsers').html('');
+
+                            var counter = 0;
+
+                            for (let i = 0; i < response.length; i++) {
+                                counter++;
+
+                                var id, email, created_at;
+
+                                id = response[i][0];
+                                email = response[i][1];
+                                created_at = response[i][3];
+                                $('#listUsers').append('<tr>\
+                                <th scope="row">'+ counter + '</th >\
+                                <td>'+ email + '</td>\
+                                <td>'+ created_at + '</td>\
                             <td>\
-                                <button type="button" value=""\
-                                        class="btn btn-primary editBtn">Edit</button>\
-                            <button type="button" class="btn btn-danger">Delete</button>\
+                                <button type="button" value="'+ id + '" class="btn btn-primary editBtn">Edit</button>\
+                                <button type="button" value="'+ id + '" class="btn btn-danger deleteBtn">Delete</button>\
                                 </td >\
                             </tr >');
 
-                    }
+                            }
 
+                        }
 
-
-
-
-
-
-
-
-
-
+                    });
 
                 }
-
-            });
-
+            })
 
         });
 
