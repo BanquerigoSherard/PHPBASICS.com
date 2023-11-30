@@ -35,7 +35,7 @@ if (isset($_POST['login'])) {
     if (mysqli_num_rows($select) != 0) {
         $user = mysqli_fetch_array($select);
         $_SESSION['user_id'] = $user['id'];
-        header("Location: admin/dashboard.php");
+        header("Location: dashboard.php");
     } else {
         echo "Failed to login";
     }
