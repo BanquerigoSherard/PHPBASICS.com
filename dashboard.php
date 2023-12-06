@@ -280,7 +280,7 @@ if (isset($_POST['save'])) {
 
 
                 <div class="form-box">
-                    <form action="dashboard.php" method="POST">
+                    <form action="dashboard.php" method="POST" enctype="">
                         <input type="text" name="name" value="<?php echo $name; ?>" placeholder="Enter Name" required>
 
                         <button name="save">Save</button>
